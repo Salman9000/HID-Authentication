@@ -55,11 +55,11 @@ function App() {
   }
 if(canvas) {
 // console.log(canvas.getContext('2d'))
-  // faceSDK.getAvailableDevices().then(data => console.log(data))
-  // faceSDK.capture();
-  try {
+// faceSDK.capture();
+try {
+    faceSDK.getAvailableDevices().then(data => console.log(data))
 
-    faceSDK.init(null, null, canvas, canvas, null, successCallBack, errCallBack, progressCallBack);
+    // faceSDK.init(null, null, canvas, canvas, null, successCallBack, errCallBack, progressCallBack);
   } catch (e) {
 console.log(e)
   }

@@ -277,19 +277,16 @@ faceSDK.detectFace = function () {
             {
                 var r, c, s;
                 //
-                vm.displayContext.beginPath();
-                vm.displayContext.arc(dets[i][1], dets[i][0], dets[i][2]/2, 0, 2*Math.PI, false);
-                vm.displayContext.lineWidth = 3;
-                vm.displayContext.strokeStyle = 'red';
-                vm.displayContext.stroke();
+                // vm.displayContext.beginPath();
+                // vm.displayContext.arc(dets[i][1], dets[i][0], dets[i][2]/2, 0, 2*Math.PI, false);
+                // vm.displayContext.lineWidth = 3;
+                // vm.displayContext.strokeStyle = 'red';
+                // vm.displayContext.stroke();
                 //
                 // find the eye pupils for each detected face
                 // starting regions for localization are initialized based on the face bounding box
                 // (parameters are set empirically)
-                // first eye
-                r = dets[i][0] - 0.075*dets[i][2];
-                c = dets[i][1] - 0.175*dets[i][2];
-                s = 0.35*dets[i][2];
+
             }
     }
     var mycamvas = new camvas(vm.displayContext, processfn);
@@ -333,12 +330,14 @@ faceSDK.detectFace = function () {
         maskContext.globalAlpha = vm.globalAlpha;
         maskContext.fillStyle = "#000000";
         maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
-        console.log("BHAI")
+        console.log(maskContext, "maskContext")
         for (var i = 0; i < detectedFaces.length; ++i) {
             if(vm.displayContext) {
+                
                 var radius = detectedFaces[i][2] / 2;
                 var halfCircleDashCount = 15;
                 if(!multipleFaces) {
+                    console.log(detectedFaces, "BAI")
                     // Transparent inner circle for detected face
                     maskContext.globalCompositeOperation = 'destination-out';
                     maskContext.arc(detectedFaces[i][1], detectedFaces[i][0], radius * 1.5, -quarter, -quarter + circle, false);
@@ -367,7 +366,6 @@ faceSDK.detectFace = function () {
         }
         // Draw mask on canvas
         vm.displayContext.drawImage(mask, 0, 0);
-        console.log("draw")
         // Save image if only one face detected
         if(!(multipleFaces || incorrectSize) && !vm.captured) {
             vm.saveImage(vm.getImageBase64());

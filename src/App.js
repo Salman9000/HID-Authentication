@@ -57,7 +57,7 @@ if(canvas) {
 // console.log(canvas.getContext('2d'))
 // faceSDK.capture();
 try {
-    faceSDK.getAvailableDevices().then(data => console.log(data)).catch(e => error)
+    // faceSDK.getAvailableDevices().then(data => console.log(data)).catch(e => error)
 
     // faceSDK.init(null, null, canvas, canvas, null, successCallBack, errCallBack, progressCallBack);
   } catch (e) {

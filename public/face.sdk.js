@@ -145,6 +145,7 @@ faceSDK.stopVideo = function() {
 faceSDK.getAvailableDevices = function() {
     return navigator.mediaDevices.enumerateDevices()
         .then(function(devices) {
+            console.log(devices, "Devvices")
             var videoDevices = devices.filter(function(item) {
                 return item.kind === "videoinput";
             });

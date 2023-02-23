@@ -174,6 +174,7 @@ faceSDK.setupFaceDetection = function() {
         response.arrayBuffer().then(function (buffer) {
             var bytes = new Int8Array(buffer);
             vm.facefinder_classify_region = pico.unpack_cascade(bytes);
+            console.log('* facefinder loaded');
         });
     });
 };
@@ -235,17 +236,63 @@ faceSDK.detectFace = function () {
     dets = vm.update_memory(dets);
     // cluster the obtained detections
     dets = pico.cluster_detections(dets, 0.2); // set IoU threshold to 0.2
-    // this constant is empirical: other cascades might require a different one
     var qthresh = 100.0;
-    // Setup canvas mask for detection
     var mask = document.createElement('canvas');
     mask.width = vm.canvas.width;
     mask.height = vm.canvas.height;
     var maskContext = mask.getContext('2d');
-    // Remove detections that are under threshold
+    // this constant is empirical: other cascades might require a different one
     var detectedFaces = dets.filter(function(det) {
         return det[3] > qthresh;
     });
+    var processfn = function(video, dt) {
+        // render the video frame to the canvas element and extract RGBA pixel data
+        vm.displayContext.drawImage(video, 0, 0);
+        var rgba = vm.displayContext.getImageData(0, 0, 640, 480).data;
+        // prepare input to `run_cascade`
+        image = {
+            "pixels": rgba_to_grayscale(rgba, 480, 640),
+            "nrows": 480,
+            "ncols": 640,
+            "ldim": 640
+        }
+        params = {
+            "shiftfactor": 0.1, // move the detection window by 10% of its size
+            "minsize": 100,     // minimum size of a face
+            "maxsize": 1000,    // maximum size of a face
+            "scalefactor": 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
+        }
+        // run the cascade over the frame and cluster the obtained detections
+        // dets is an array that contains (r, c, s, q) quadruplets
+        // (representing row, column, scale and detection score)
+        dets = pico.run_cascade(image, vm.facefinder_classify_region, params);
+        dets = vm.update_memory(dets);
+        dets = pico.cluster_detections(dets, 0.2); // set IoU threshold to 0.2
+        // draw detections
+        for(i=0; i<dets.length; ++i)
+            // check the detection score
+            // if it's above the threshold, draw it
+            // (the constant 50.0 is empirical: other cascades might require a different one)
+            if(dets[i][3]>50.0)
+            {
+                var r, c, s;
+                //
+                vm.displayContext.beginPath();
+                vm.displayContext.arc(dets[i][1], dets[i][0], dets[i][2]/2, 0, 2*Math.PI, false);
+                vm.displayContext.lineWidth = 3;
+                vm.displayContext.strokeStyle = 'red';
+                vm.displayContext.stroke();
+                //
+                // find the eye pupils for each detected face
+                // starting regions for localization are initialized based on the face bounding box
+                // (parameters are set empirically)
+                // first eye
+                r = dets[i][0] - 0.075*dets[i][2];
+                c = dets[i][1] - 0.175*dets[i][2];
+                s = 0.35*dets[i][2];
+            }
+    }
+    var mycamvas = new camvas(vm.displayContext, processfn);
     // If progress at 100% we are done
     if(vm.completed && vm.currentPercent >= 1) {
         vm.stopVideo();
@@ -333,11 +380,11 @@ faceSDK.detectFace = function () {
         vm.progressCB(states.noFace);
         setErrorTimeout();
         if(vm.displayContext) {
-            // decreaseAlpha();
-            // maskContext.globalAlpha = vm.globalAlpha;
-            // maskContext.fillStyle = "#000000";
-            // maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
-            // vm.displayContext.drawImage(mask, 0, 0);
+            decreaseAlpha();
+            maskContext.globalAlpha = vm.globalAlpha;
+            maskContext.fillStyle = "#000000";
+            maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
+            vm.displayContext.drawImage(mask, 0, 0);
         }
     }
 };

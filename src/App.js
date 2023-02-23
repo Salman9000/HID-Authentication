@@ -51,14 +51,18 @@ function App() {
       console.log(e)
   }
   const progressCallBack = () => {
-      console.log("progress")
+      // console.log("progress")
+  }
+
+  const faceCapture = async () => {
+faceSDK.init(video, 1, canvas, canvas, 10, successCallBack, errCallBack, progressCallBack);
   }
 if(canvas) {
 // console.log(canvas.getContext('2d'))
 // faceSDK.capture();
 try {
     // faceSDK.getAvailableDevices().then(data => console.log(data)).catch(e => error)
-    faceSDK.init(video, 1, canvas, canvas, null, successCallBack, errCallBack, progressCallBack);
+    
     // faceSDK.start();
 
   } catch (e) {
@@ -71,7 +75,7 @@ console.log(e)
   const getConnectedDevices = async () => {
     try {      
       const devices = await reader.enumerateDevices()
-      console.log(devices)
+      console.log(devices, "devices")
       const myDevice = await reader.getDeviceInfo(devices[0])
       console.log(myDevice)
       // capture()
@@ -186,6 +190,23 @@ console.log(e)
       >
         Capture Fingerprint
       </button>
+      <button
+        className={"primary btn"}
+        style={{ width: "200px", margin: "0 auto", marginBottom: "30px" }}
+        onClick={() => faceSDK.stopVideo()}
+        type="button"
+      >
+        Stop Face
+      </button>
+
+      <button
+        className={"primary btn"}
+        style={{ width: "200px", margin: "0 auto", marginBottom: "30px" }}
+        onClick={() => faceCapture()}
+        type="button"
+      >
+        Capture FAce
+      </button>
       <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} /> 
       <>
       {scanStart ? <p>Please scan your fingeprint</p> : <></>}
@@ -200,7 +221,7 @@ console.log(e)
        : <p></p>}
       </>
       <Canvas canvasRef={canvasRef} />
-      <video width="320" height="240" ref={videoRef} />
+      <video width="640" height="480" ref={videoRef} />
       {/* </form> */}
     </div>
   )

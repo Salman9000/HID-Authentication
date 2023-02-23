@@ -81,7 +81,7 @@ faceSDK.init = function(videoElement, constraints, canvas, displayCanvas, imageC
 // this will start and ask user permission for accessing webcam.
 faceSDK.start = function() {
     console.log(2, "@")
-    var constraints = { video: true, audio: true };
+    var constraints = { video: true };
     navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
             console.log(stream, "Stream")
@@ -162,11 +162,14 @@ faceSDK.getAvailableDevices = function() {
 };
 
 faceSDK.setupFaceDetection = function() {
+    console.log("isnide faceDetction")
     vm.facefinder_classify_region = function (r, c, s, pixels, ldim) { return -1.0; };
     vm.update_memory = pico.instantiate_detection_memory(5); // Combine detection from last X frames
     // Host facefinder locally now
-    //vm.cascadeurl = 'https://raw.githubusercontent.com/nenadmarkus/pico/c2e81f9d23cc11d1a612fd21e4f9de0921a5d0d9/rnt/cascades/facefinder';
-    vm.cascadeurl = 'websdk/facefinder.txt';
+    vm.cascadeurl = 'https://raw.githubusercontent.com/nenadmarkus/pico/c2e81f9d23cc11d1a612fd21e4f9de0921a5d0d9/rnt/cascades/facefinder';
+    console.log(vm.cascadeurl, "cascade url")
+    console.log(vm, "vm")
+    // vm.cascadeurl = 'websdk/facefinder.txt';
     fetch(vm.cascadeurl).then(function (response) {
         response.arrayBuffer().then(function (buffer) {
             var bytes = new Int8Array(buffer);
@@ -176,6 +179,7 @@ faceSDK.setupFaceDetection = function() {
 };
 
 faceSDK.detectFace = function () {
+    // console.log("detect face")
     if (!vm.stream || !vm.stream.active) {
         vm.progressCB(states.inactive);
         setErrorTimeout();
@@ -252,6 +256,7 @@ faceSDK.detectFace = function () {
         vm.currentPercent += percentDelta;
     }
     if(detectedFaces.length > 0) {
+        console.log("found faces")
         // Found faces
         var multipleFaces = detectedFaces.length > 1;
         var incorrectSize = false;
@@ -281,6 +286,7 @@ faceSDK.detectFace = function () {
         maskContext.globalAlpha = vm.globalAlpha;
         maskContext.fillStyle = "#000000";
         maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
+        console.log("BHAI")
         for (var i = 0; i < detectedFaces.length; ++i) {
             if(vm.displayContext) {
                 var radius = detectedFaces[i][2] / 2;
@@ -314,6 +320,7 @@ faceSDK.detectFace = function () {
         }
         // Draw mask on canvas
         vm.displayContext.drawImage(mask, 0, 0);
+        console.log("draw")
         // Save image if only one face detected
         if(!(multipleFaces || incorrectSize) && !vm.captured) {
             vm.saveImage(vm.getImageBase64());
@@ -321,15 +328,16 @@ faceSDK.detectFace = function () {
         }
     }
     else {
+        console.log("no face")
         // No face found
         vm.progressCB(states.noFace);
         setErrorTimeout();
         if(vm.displayContext) {
-            decreaseAlpha();
-            maskContext.globalAlpha = vm.globalAlpha;
-            maskContext.fillStyle = "#000000";
-            maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
-            vm.displayContext.drawImage(mask, 0, 0);
+            // decreaseAlpha();
+            // maskContext.globalAlpha = vm.globalAlpha;
+            // maskContext.fillStyle = "#000000";
+            // maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
+            // vm.displayContext.drawImage(mask, 0, 0);
         }
     }
 };
@@ -346,6 +354,7 @@ faceSDK.runTheLoop = function() {
 };
 
 faceSDK.saveImage = function(image) {
+    console.log(image, "image")
     if(vm.images.length < vm.totalImageCount) {
         vm.images.push(image);
     }

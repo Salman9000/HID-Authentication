@@ -151,6 +151,7 @@ faceSDK.getAvailableDevices = function() {
             return videoDevices;
         })
         .catch(function(error) {
+            return error
         });
     // if we need to use a specific device, use this in constraints where id is the actual deviceId.
     // video: { deviceId: { exact: id} }

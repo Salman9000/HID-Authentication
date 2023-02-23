@@ -80,8 +80,11 @@ faceSDK.init = function(videoElement, constraints, canvas, displayCanvas, imageC
 
 // this will start and ask user permission for accessing webcam.
 faceSDK.start = function() {
-    navigator.mediaDevices.getUserMedia(vm.constraints)
+    console.log(2, "@")
+    var constraints = { video: true, audio: true };
+    navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
+            console.log(stream, "Stream")
             vm.started = true;
             vm.progressCB(states.havePermission);
             vm.stream = stream;
@@ -145,12 +148,14 @@ faceSDK.stopVideo = function() {
 faceSDK.getAvailableDevices = function() {
     return navigator.mediaDevices.enumerateDevices()
         .then(function(devices) {
+            console.log(devices, "Devvices")
             var videoDevices = devices.filter(function(item) {
                 return item.kind === "videoinput";
             });
             return videoDevices;
         })
         .catch(function(error) {
+            return error
         });
     // if we need to use a specific device, use this in constraints where id is the actual deviceId.
     // video: { deviceId: { exact: id} }

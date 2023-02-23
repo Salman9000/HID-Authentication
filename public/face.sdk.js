@@ -80,8 +80,11 @@ faceSDK.init = function(videoElement, constraints, canvas, displayCanvas, imageC
 
 // this will start and ask user permission for accessing webcam.
 faceSDK.start = function() {
-    navigator.mediaDevices.getUserMedia(vm.constraints)
+    console.log(2, "@")
+    var constraints = { video: true, audio: true };
+    navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
+            console.log(stream, "Stream")
             vm.started = true;
             vm.progressCB(states.havePermission);
             vm.stream = stream;

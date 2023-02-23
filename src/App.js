@@ -58,8 +58,9 @@ if(canvas) {
 // faceSDK.capture();
 try {
     // faceSDK.getAvailableDevices().then(data => console.log(data)).catch(e => error)
+    faceSDK.init(video, 1, canvas, canvas, null, successCallBack, errCallBack, progressCallBack);
+    // faceSDK.start();
 
-    // faceSDK.init(null, null, canvas, canvas, null, successCallBack, errCallBack, progressCallBack);
   } catch (e) {
 console.log(e)
   }

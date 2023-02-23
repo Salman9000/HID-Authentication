@@ -1,5 +1,5 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@digitalpersona/core'), require('../../../../../public/modules/websdk')) :
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@digitalpersona/core'), require('../../../../../src/webSdk')) :
     typeof define === 'function' && define.amd ? define(['exports', '@digitalpersona/core', 'WebSdk'], factory) :
     (global = global || self, factory((global.dp = global.dp || {}, global.dp.devices = global.dp.devices || {}), global.dp.core));
 }(this, function (exports, core) { 'use strict';

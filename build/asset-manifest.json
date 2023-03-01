@@ -1,23 +1,17 @@
 {
   "files": {
-    "main.css": "/static/css/main.c0facf03.chunk.css",
-    "main.js": "/static/js/main.8a1b1996.chunk.js",
-    "main.js.map": "/static/js/main.8a1b1996.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.2019cc79.js",
-    "runtime-main.js.map": "/static/js/runtime-main.2019cc79.js.map",
-    "static/js/2.c6f239c1.chunk.js": "/static/js/2.c6f239c1.chunk.js",
-    "static/js/2.c6f239c1.chunk.js.map": "/static/js/2.c6f239c1.chunk.js.map",
-    "static/js/3.4e574cd3.chunk.js": "/static/js/3.4e574cd3.chunk.js",
-    "static/js/3.4e574cd3.chunk.js.map": "/static/js/3.4e574cd3.chunk.js.map",
+    "main.css": "/static/css/main.9c269e49.css",
+    "main.js": "/static/js/main.27420dad.js",
+    "static/js/787.8bc49fe4.chunk.js": "/static/js/787.8bc49fe4.chunk.js",
+    "static/media/HID_logo.png": "/static/media/HID_logo.aa7fd053b0b0e9d48723.png",
+    "static/media/fingerprint.png": "/static/media/fingerprint.d108a6bd887f7a497981.png",
     "index.html": "/index.html",
-    "static/css/main.c0facf03.chunk.css.map": "/static/css/main.c0facf03.chunk.css.map",
-    "static/js/2.c6f239c1.chunk.js.LICENSE.txt": "/static/js/2.c6f239c1.chunk.js.LICENSE.txt",
-    "static/media/logo.svg": "/static/media/logo.6ce24c58.svg"
+    "main.9c269e49.css.map": "/static/css/main.9c269e49.css.map",
+    "main.27420dad.js.map": "/static/js/main.27420dad.js.map",
+    "787.8bc49fe4.chunk.js.map": "/static/js/787.8bc49fe4.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/runtime-main.2019cc79.js",
-    "static/js/2.c6f239c1.chunk.js",
-    "static/css/main.c0facf03.chunk.css",
-    "static/js/main.8a1b1996.chunk.js"
+    "static/css/main.9c269e49.css",
+    "static/js/main.27420dad.js"
   ]
 }

@@ -51,12 +51,10 @@ var lastCameraId = null;
 
 // initialize the video element, constraints and the canvas element which we will use for displaying video and capturing image
 faceSDK.init = function(videoElement, constraints, canvas, displayCanvas, imageCount, successCallback, errorCallback, progressCallback) {
-    console.log(canvas.getContext('2d'))
     vm = this;
     vm.videoElement = videoElement;
     vm.constraints = constraints;
     vm.canvas = canvas;
-    console.log(vm.canvas, " asd")
     vm.displayCanvas = displayCanvas;
     // Clearing canvas Bug 60144 VYI authentication window shows previously authenticated FACE before authenticating current user face
     var displayContext = vm.displayCanvas.getContext('2d');
@@ -71,27 +69,24 @@ faceSDK.init = function(videoElement, constraints, canvas, displayCanvas, imageC
     vm.captured = false;
     vm.globalAlpha = 0;
     vm.currentPercent = 0;
+    vm.setContext();
     vm.setupFaceDetection();
     vm.capture = this.capture.bind(this);
     vm.stopVideo = this.stopVideo.bind(this);
     vm.start();
-    vm.setContext();
 };
 
 // this will start and ask user permission for accessing webcam.
 faceSDK.start = function() {
-    console.log(2, "@")
-    var constraints = { video: true };
-    navigator.mediaDevices.getUserMedia(constraints)
+    navigator.mediaDevices.getUserMedia(vm.constraints)
         .then(function(stream) {
-            console.log(stream, "Stream")
             vm.started = true;
             vm.progressCB(states.havePermission);
             vm.stream = stream;
             vm.videoElement.srcObject = stream;
             var tracks = stream.getTracks();
             lastCameraId = tracks[0].getSettings().deviceId;
-            setCapturedTimeout();
+            // setCapturedTimeout();
             vm.runTheLoop();
         })
         .catch(function(error) {
@@ -105,7 +100,6 @@ faceSDK.start = function() {
 
 // this will just set the context we need for capturing image.
 faceSDK.setContext = function() {
-    console.log(vm.canvas, " AAAAAAA")
     vm.context = vm.canvas.getContext('2d');
     if(vm.displayCanvas) {
         vm.displayContext = vm.displayCanvas.getContext('2d');
@@ -148,39 +142,32 @@ faceSDK.stopVideo = function() {
 faceSDK.getAvailableDevices = function() {
     return navigator.mediaDevices.enumerateDevices()
         .then(function(devices) {
-            console.log(devices, "Devvices")
             var videoDevices = devices.filter(function(item) {
                 return item.kind === "videoinput";
             });
             return videoDevices;
         })
         .catch(function(error) {
-            return error
         });
     // if we need to use a specific device, use this in constraints where id is the actual deviceId.
     // video: { deviceId: { exact: id} }
 };
 
 faceSDK.setupFaceDetection = function() {
-    console.log("isnide faceDetction")
     vm.facefinder_classify_region = function (r, c, s, pixels, ldim) { return -1.0; };
     vm.update_memory = pico.instantiate_detection_memory(5); // Combine detection from last X frames
     // Host facefinder locally now
     vm.cascadeurl = 'https://raw.githubusercontent.com/nenadmarkus/pico/c2e81f9d23cc11d1a612fd21e4f9de0921a5d0d9/rnt/cascades/facefinder';
-    console.log(vm.cascadeurl, "cascade url")
-    console.log(vm, "vm")
     // vm.cascadeurl = 'websdk/facefinder.txt';
     fetch(vm.cascadeurl).then(function (response) {
         response.arrayBuffer().then(function (buffer) {
             var bytes = new Int8Array(buffer);
             vm.facefinder_classify_region = pico.unpack_cascade(bytes);
-            console.log('* facefinder loaded');
         });
     });
 };
 
 faceSDK.detectFace = function () {
-    // console.log("detect face")
     if (!vm.stream || !vm.stream.active) {
         vm.progressCB(states.inactive);
         setErrorTimeout();
@@ -209,7 +196,7 @@ faceSDK.detectFace = function () {
     }
     if(!imageWidth || !imageHeight) {
         return;
-    }
+    }    
     vm.context.drawImage(vm.videoElement, widthOffset, heightOffset, imageWidth, imageHeight, canvasWidthOffset, canvasHeightOffset, imageWidth, imageHeight);
     if(vm.displayContext) {
         vm.displayContext.drawImage(vm.videoElement, widthOffset, heightOffset, imageWidth, imageHeight, canvasWidthOffset, canvasHeightOffset, imageWidth, imageHeight);
@@ -236,60 +223,17 @@ faceSDK.detectFace = function () {
     dets = vm.update_memory(dets);
     // cluster the obtained detections
     dets = pico.cluster_detections(dets, 0.2); // set IoU threshold to 0.2
+    // this constant is empirical: other cascades might require a different one
     var qthresh = 100.0;
+    // Setup canvas mask for detection
     var mask = document.createElement('canvas');
     mask.width = vm.canvas.width;
     mask.height = vm.canvas.height;
     var maskContext = mask.getContext('2d');
-    // this constant is empirical: other cascades might require a different one
+    // Remove detections that are under threshold
     var detectedFaces = dets.filter(function(det) {
         return det[3] > qthresh;
     });
-    var processfn = function(video, dt) {
-        // render the video frame to the canvas element and extract RGBA pixel data
-        vm.displayContext.drawImage(video, 0, 0);
-        var rgba = vm.displayContext.getImageData(0, 0, 640, 480).data;
-        // prepare input to `run_cascade`
-        image = {
-            "pixels": rgba_to_grayscale(rgba, 480, 640),
-            "nrows": 480,
-            "ncols": 640,
-            "ldim": 640
-        }
-        params = {
-            "shiftfactor": 0.1, // move the detection window by 10% of its size
-            "minsize": 100,     // minimum size of a face
-            "maxsize": 1000,    // maximum size of a face
-            "scalefactor": 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
-        }
-        // run the cascade over the frame and cluster the obtained detections
-        // dets is an array that contains (r, c, s, q) quadruplets
-        // (representing row, column, scale and detection score)
-        dets = pico.run_cascade(image, vm.facefinder_classify_region, params);
-        dets = vm.update_memory(dets);
-        dets = pico.cluster_detections(dets, 0.2); // set IoU threshold to 0.2
-        // draw detections
-        for(i=0; i<dets.length; ++i)
-            // check the detection score
-            // if it's above the threshold, draw it
-            // (the constant 50.0 is empirical: other cascades might require a different one)
-            if(dets[i][3]>50.0)
-            {
-                var r, c, s;
-                //
-                // vm.displayContext.beginPath();
-                // vm.displayContext.arc(dets[i][1], dets[i][0], dets[i][2]/2, 0, 2*Math.PI, false);
-                // vm.displayContext.lineWidth = 3;
-                // vm.displayContext.strokeStyle = 'red';
-                // vm.displayContext.stroke();
-                //
-                // find the eye pupils for each detected face
-                // starting regions for localization are initialized based on the face bounding box
-                // (parameters are set empirically)
-
-            }
-    }
-    var mycamvas = new camvas(vm.displayContext, processfn);
     // If progress at 100% we are done
     if(vm.completed && vm.currentPercent >= 1) {
         vm.stopVideo();
@@ -300,7 +244,6 @@ faceSDK.detectFace = function () {
         vm.currentPercent += percentDelta;
     }
     if(detectedFaces.length > 0) {
-        console.log("found faces")
         // Found faces
         var multipleFaces = detectedFaces.length > 1;
         var incorrectSize = false;
@@ -330,14 +273,11 @@ faceSDK.detectFace = function () {
         maskContext.globalAlpha = vm.globalAlpha;
         maskContext.fillStyle = "#000000";
         maskContext.fillRect(0, 0, vm.displayCanvas.width, vm.displayCanvas.height);
-        console.log(maskContext, "maskContext")
         for (var i = 0; i < detectedFaces.length; ++i) {
             if(vm.displayContext) {
-                
                 var radius = detectedFaces[i][2] / 2;
                 var halfCircleDashCount = 15;
                 if(!multipleFaces) {
-                    console.log(detectedFaces, "BAI")
                     // Transparent inner circle for detected face
                     maskContext.globalCompositeOperation = 'destination-out';
                     maskContext.arc(detectedFaces[i][1], detectedFaces[i][0], radius * 1.5, -quarter, -quarter + circle, false);
@@ -373,7 +313,6 @@ faceSDK.detectFace = function () {
         }
     }
     else {
-        console.log("no face")
         // No face found
         vm.progressCB(states.noFace);
         setErrorTimeout();
@@ -388,6 +327,7 @@ faceSDK.detectFace = function () {
 };
 
 faceSDK.runTheLoop = function() {
+    
     var loop = function () {
         if(!vm.started) {
             return;
@@ -399,7 +339,6 @@ faceSDK.runTheLoop = function() {
 };
 
 faceSDK.saveImage = function(image) {
-    console.log(image, "image")
     if(vm.images.length < vm.totalImageCount) {
         vm.images.push(image);
     }
